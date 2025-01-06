@@ -1,0 +1,36 @@
+name: Deploy
+
+on: workflow_dispatch
+env:
+  ITCH_USERNAME: toto-hitori
+  ITCH_GAME_ID: test-game
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Itch.io
+    strategy:
+      fail-fast: true
+      matrix:
+        channel:
+          - html
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - uses: actions/download-artifact@v2.0.8
+        with:
+          name: ${{ matrix.channel }}
+          path: build/${{ matrix.channel }}
+      - uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{ secrets.BUTLER_API_KEY }}
+          gameData: ./dist
+          itchUsername: ${{ env.ITCH_USERNAME }}
+          itchGameId: ${{ env.ITCH_GAME_ID }}
+          buildChannel: ${{ matrix.channel }}
