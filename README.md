@@ -1,55 +1,58 @@
-# Narrat Template
+# Github Action for pushing a Narrat game to itch.io
 
-Template app for [Narrat](https://github.com/nialna/narrat).
+This repository serves as an example of how to build a CD pipeline to upload build of your narrat game to Itch.io.
 
-> ✨ Bootstrapped with Create Snowpack App (CSA).
+## Example usage
 
-## Usage
+The following is an example to ship your game when a new release tag is created:
 
-You can clone, fork or download this to get it in a local folder, then:
+```yaml
+name: Deploy
 
-1. `npm install`
-2. `npm start`
+on:
+  push:
+    tags:
+      - "release-*"
+env:
+  ITCH_USERNAME: your-username
+  ITCH_GAME_ID: game-name
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Itch.io
+    strategy:
+      fail-fast: true
+      matrix:
+        channel:
+          - html
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{ secrets.BUTLER_API_KEY }}
+          gameData: ./dist
+          itchUsername: ${{ env.ITCH_USERNAME }}
+          itchGameId: ${{ env.ITCH_GAME_ID }}
+          buildChannel: ${{ matrix.channel }}
+          buildNumber: ${{ github.ref_name }}
+```
 
-## Building for the web
+### Required variables
 
-`npm run build`
+| Name               | Description                                                                                                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ITCH_USERNAME**  | Found in your game url (lore-ipsum.itch.io/your-game-id)                                                                                                                |
+| **ITCH_GAME_ID**   | Found in your itch.io url (your-username.itch.io)                                                                                                                       |
+| **BUTLER_API_KEY** | Itch.io API key found [here](https://itch.io/docs/butler/login.html#running-butler-from-ci-builds-travis-ci-gitlab-ci-etc). Must be setup in your repository variables. |
 
-Builds the app for production to the `build/` folder.
-It correctly bundles Vue in production mode and optimizes the build for the best performance.
+## Credits
 
-It should be easy to host the built result as a static website on a service like [Netlify](https://www.netlify.com)
-
-## Building as an app
-
-This template has [electron](https://www.electronjs.org) already setup to create a built app of your game.
-
-To run it:
-
-`npm run electron`
-
-To build it (it will come out in the `out` folder):
-
-`npm run package`
-
-This should work on Windows, Mac and Linux
-
-## Narrat documentation
-
-[See docs](https://docs.narrat.dev)
-
-## Changing game code
-
-You can edit game code and config in the data folder (`data/example.narrat`).
-
-[See docs](https://docs.narrat.dev) for more usage info
-
-## Available Scripts
-
-### npm start
-
-Runs the app in the development mode.
-Open http://localhost:8080 to view it in the browser.
-
-The page will reload if you make edits.
-You will also see any lint errors in the console.
+This action has been loosely based on the work done by [KikimoraGames](https://github.com/marketplace/actions/itch-io-publish).
