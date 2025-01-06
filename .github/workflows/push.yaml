@@ -1,6 +1,9 @@
 name: Deploy
 
-on: workflow_dispatch
+on:
+  push:
+    tags:
+      - "release-*"
 env:
   ITCH_USERNAME: toto-hitori
   ITCH_GAME_ID: test-game
@@ -30,3 +33,4 @@ jobs:
           itchUsername: ${{ env.ITCH_USERNAME }}
           itchGameId: ${{ env.ITCH_GAME_ID }}
           buildChannel: ${{ matrix.channel }}
+          buildNumber: ${{ github.ref_name }}
