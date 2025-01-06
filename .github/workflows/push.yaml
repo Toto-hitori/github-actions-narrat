@@ -23,10 +23,6 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
-      - uses: actions/download-artifact@v2.0.8
-        with:
-          name: ${{ matrix.channel }}
-          path: build/${{ matrix.channel }}
       - uses: KikimoraGames/itch-publish@v0.0.3
         with:
           butlerApiKey: ${{ secrets.BUTLER_API_KEY }}
